@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Benchmark Justice™ · Public Records & Judicial Intelligence</title>
+  
+  <!-- Supported schemes declaration & FOUC Prevention (Modern Web Guidance) -->
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try {
+      const stored = localStorage.getItem("color-scheme");
+      if (stored) {
+        document.querySelector('meta[name="color-scheme"]').content = stored;
+        document.documentElement.setAttribute('data-theme', stored);
+      }
+    } catch (e) {}
+  </script>
+
+  <!-- Google Fonts: Inter & Playfair Display (exact matches to mobile app) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/png" href="assets/images/benchmark_justice_logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Sticky Site Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-container">
+      
+      <!-- Brand Lock-up -->
+      <a href="#dashboard" class="brand-lockup" aria-label="Benchmark Justice Home">
+        <div class="brand-tile">
+          <!-- Classical Greek / Judicial Landmark Column Icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="2" x2="22" y1="22" y2="22"/>
+            <line x1="12" x2="12" y1="6" y2="18"/>
+            <line x1="6" x2="6" y1="10" y2="18"/>
+            <line x1="18" x2="18" y1="10" y2="18"/>
+            <path d="m3 6 9-4 9 4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">BENCHMARK</span>
+          <span class="brand-subtitle">JUSTICE</span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav aria-label="Primary Navigation">
+        <ul class="nav-links">
+          <li>
+            <a href="#dashboard" class="nav-link active" data-view="dashboard">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#search" class="nav-link" data-view="search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <span>Search Records</span>
+            </a>
+          </li>
+          <li>
+            <a href="#courts" class="nav-link" data-view="courts">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="22" y2="22"/><line x1="12" x2="12" y1="6" y2="18"/><line x1="6" x2="6" y1="10" y2="18"/><line x1="18" x2="18" y1="10" y2="18"/><path d="m3 6 9-4 9 4"/></svg>
+              <span>Courts</span>
+            </a>
+          </li>
+          <li>
+            <a href="#activity" class="nav-link" data-view="activity">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span>Live Intelligence</span>
+            </a>
+          </li>
+          <li>
+            <a href="#bookmarks" class="nav-link" data-view="bookmarks">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              <span>Research Dossier</span>
+              <span id="saved-count-badge" class="badge tone-gold" style="display: none; padding: 1px 6px; font-size: 0.7rem;">0</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Color Scheme" title="Toggle Color Scheme">
+          <span id="theme-toggle-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </span>
+        </button>
+
+        <!-- Live Intelligence Quick Button -->
+        <a href="#activity" class="btn-icon" aria-label="Live Activity Feed" title="Live CourtListener Stream">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <div class="live-indicator-dot"></div>
+        </a>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button id="mobile-nav-btn" class="btn-icon mobile-nav-toggle" aria-label="Toggle Navigation Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-nav-drawer" class="mobile-drawer" role="navigation" aria-label="Mobile Navigation">
+    <a href="#dashboard" class="mobile-nav-link" data-view="dashboard">Dashboard</a>
+    <a href="#search" class="mobile-nav-link" data-view="search">Universal Search</a>
+    <a href="#courts" class="mobile-nav-link" data-view="courts">Courts Directory</a>
+    <a href="#activity" class="mobile-nav-link" data-view="activity">Live Intelligence Feed</a>
+    <a href="#bookmarks" class="mobile-nav-link" data-view="bookmarks">Saved Research Dossier</a>
+  </div>
+
+  <!-- Main View Container -->
+  <main class="container" style="flex: 1; padding-bottom: 64px;">
+
+    <!-- ====================================================================
+         VIEW 1: DASHBOARD (HOME)
+         ==================================================================== -->
+    <section id="view-dashboard" class="view-panel active-view" aria-label="Dashboard">
+
+      <!-- Hero Section with Scale Watermark and Glowing Border Rule -->
+      <div class="hero-section">
+        <div class="hero-glow-rule"></div>
+
+        <!-- Scale of Justice SVG Watermark -->
+        <div class="hero-watermark">
+          <svg width="240" height="240" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+        </div>
+
+        <div class="hero-badge-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          <span id="hero-greeting-text">Good afternoon · Judicial Research</span>
+        </div>
+
+        <h1 class="hero-title">See the record behind the justice system.</h1>
+        <p class="hero-description">Search any judge, attorney, prosecutor, court, or case across federal and state public records.</p>
+      </div>
+
+      <!-- Universal Search Bar (Overlaps Hero Edge) -->
+      <div class="hero-search-wrapper">
+        <div class="search-box-card">
+          <svg class="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="hero-search-input" class="search-input-field" placeholder="Search judges, lawyers, cases, courts, or federal dockets..." aria-label="Search Legal Records">
+          <span class="search-shortcut-hint">⌘K or /</span>
+          <button id="hero-search-btn" class="search-action-btn">
+            <span>Search</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- Quick Query Suggestion Chips -->
+        <div class="quick-search-chips">
+          <span class="quick-chip-label">Trending:</span>
+          <button class="quick-chip">"United States v. Alphabet"</button>
+          <button class="quick-chip">"Loper Bright"</button>
+          <button class="quick-chip">"John Roberts"</button>
+          <button class="quick-chip">"D.C. Circuit"</button>
+          <button class="quick-chip">"Antitrust Enforcement"</button>
+        </div>
+      </div>
+
+      <!-- Coverage Counters Section -->
+      <div class="section-header-block">
+        <div>
+          <div class="section-eyebrow">Coverage</div>
+          <h2 class="section-title">Intelligence at a glance</h2>
+        </div>
+      </div>
+      <div id="coverage-counters-container" class="coverage-counters-grid"></div>
+
+      <!-- Browse By Category Section -->
+      <div class="section-header-block">
+        <div>
+          <div class="section-eyebrow">Browse</div>
+          <h2 class="section-title">Explore by category</h2>
+        </div>
+      </div>
+
+      <div class="entity-categories-grid">
+        <!-- Judges Card -->
+        <div class="entity-card" data-category="judges">
+          <div class="entity-card-top">
+            <div>
+              <div class="entity-card-sub">Judicial Profiles</div>
+              <h3 class="entity-card-title">Judges & Justices</h3>
+            </div>
+            <div class="counter-icon-tile tone-gold">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg>
+            </div>
+          </div>
+          <p class="entity-card-desc">Positions, presidential nominations, senate confirmations, education, and authored precedential opinions.</p>
+          <div class="entity-card-bottom">
+            <span class="entity-card-count">3,420+ indexed</span>
+            <span class="entity-card-arrow">→</span>
+          </div>
+        </div>
+
+        <!-- Attorneys Card -->
+        <div class="entity-card" data-category="attorneys">
+          <div class="entity-card-top">
+            <div>
+              <div class="entity-card-sub">Counsel of Record</div>
+              <h3 class="entity-card-title">Trial & Appellate Lawyers</h3>
+            </div>
+            <div class="counter-icon-tile tone-info">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+            </div>
+          </div>
+          <p class="entity-card-desc">Firm affiliations, bar admissions, and every federal docket and appellate matter they appeared on.</p>
+          <div class="entity-card-bottom">
+            <span class="entity-card-count">185,000+ on record</span>
+            <span class="entity-card-arrow">→</span>
+          </div>
+        </div>
+
+        <!-- Cases & Dockets Card -->
+        <div class="entity-card" data-category="cases">
+          <div class="entity-card-top">
+            <div>
+              <div class="entity-card-sub">Case Law & Dockets</div>
+              <h3 class="entity-card-title">Audited Cases & Opinions</h3>
+            </div>
+            <div class="counter-icon-tile tone-teal">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+            </div>
+          </div>
+          <p class="entity-card-desc">Published opinions, federal dockets, chronological proceedings, filings, and citing legal authority.</p>
+          <div class="entity-card-bottom">
+            <span class="entity-card-count">12,450+ opinions</span>
+            <span class="entity-card-arrow">→</span>
+          </div>
+        </div>
+
+        <!-- Courts Card -->
+        <div class="entity-card" data-category="courts">
+          <div class="entity-card-top">
+            <div>
+              <div class="entity-card-sub">Federal & State</div>
+              <h3 class="entity-card-title">Courts Directory</h3>
+            </div>
+            <div class="counter-icon-tile tone-warning">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="2" x2="22" y1="22" y2="22"/><line x1="12" x2="12" y1="6" y2="18"/><line x1="6" x2="6" y1="10" y2="18"/><line x1="18" x2="18" y1="10" y2="18"/><path d="m3 6 9-4 9 4"/></svg>
+            </div>
+          </div>
+          <p class="entity-card-desc">SCOTUS, 13 Federal Appellate Circuits, 94 District Courts, and state trial and supreme courts.</p>
+          <div class="entity-card-bottom">
+            <span class="entity-card-count">384 jurisdictions</span>
+            <span class="entity-card-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Feed and Trend Activity Split -->
+      <div class="dashboard-intel-split">
+        <!-- Live Intelligence Feed -->
+        <div class="intel-panel">
+          <div class="intel-header">
+            <div class="intel-title-group">
+              <div class="counter-icon-tile tone-success" style="margin-bottom: 0; width: 36px; height: 36px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.3rem;">Live CourtListener Feed</h3>
+            </div>
+            <div class="pulse-badge">
+              <span class="live-indicator-dot" style="position: static;"></span>
+              <span>Live Updates</span>
+            </div>
+          </div>
+          <div id="live-feed-container" class="feed-items-list"></div>
+        </div>
+
+        <!-- Activity Trend Chart -->
+        <div class="intel-panel">
+          <div class="intel-header">
+            <div>
+              <div class="section-eyebrow">Analytics</div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.3rem;">Filings by Decade</h3>
+            </div>
+            <span class="badge tone-gold">2016 – 2026</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-secondary);">Chronological volume of published federal opinions and appellate rulings.</p>
+          <div id="trend-chart-container" class="chart-box"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: UNIVERSAL SEARCH & RESULTS
+         ==================================================================== -->
+    <section id="view-search" class="view-panel" aria-label="Search Records">
+      <div class="search-view-header">
+        <div class="section-eyebrow">Universal Legal Database</div>
+        <h2 class="section-title">Search Case Law, Dockets & Officials</h2>
+
+        <div class="search-box-card" style="margin-top: 18px;">
+          <svg class="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="main-search-input" class="search-input-field" placeholder="Search by name, citation, court, or keyword..." aria-label="Query Search Box">
+        </div>
+
+        <div class="filter-pills-row">
+          <button class="filter-pill active" data-filter="all">All Records</button>
+          <button class="filter-pill" data-filter="judges">Judges</button>
+          <button class="filter-pill" data-filter="cases">Cases & Dockets</button>
+          <button class="filter-pill" data-filter="attorneys">Attorneys</button>
+          <button class="filter-pill" data-filter="legislators">Legislators</button>
+          <span id="search-results-count" style="margin-left: auto; font-size: 0.85rem; color: var(--text-tertiary); font-weight: 600;">0 results</span>
+        </div>
+      </div>
+
+      <div id="search-results-container" class="search-results-list"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: COURTS DIRECTORY
+         ==================================================================== -->
+    <section id="view-courts" class="view-panel" aria-label="Courts Directory">
+      <div class="search-view-header">
+        <div class="section-eyebrow">Judicial System Hierarchy</div>
+        <h2 class="section-title">Federal & State Courts Directory</h2>
+        <p style="color: var(--text-secondary); margin-top: 6px;">Browse appellate circuits, district courts, and state supreme courts indexed in Benchmark Justice.</p>
+      </div>
+
+      <div id="courts-grid-container" class="courts-grid"></div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 4: LIVE INTELLIGENCE STREAM
+         ==================================================================== -->
+    <section id="view-activity" class="view-panel" aria-label="Live Intelligence">
+      <div class="search-view-header">
+        <div class="section-eyebrow">Real-Time Dockets & Slip Opinions</div>
+        <h2 class="section-title">Live Judicial Intelligence Stream</h2>
+        <p style="color: var(--text-secondary); margin-top: 6px;">Connected to CourtListener REST API v4 streaming federal filings, appellate rulings, and orders.</p>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 14px;">
+        <div class="counter-stat-card" style="border-left: 4px solid var(--gold-500);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="badge tone-gold">United States Supreme Court</span>
+            <span style="font-size: 0.8rem; color: var(--text-tertiary);">Today · 10:00 AM EST</span>
+          </div>
+          <h3 style="font-family: var(--font-serif); font-size: 1.2rem; margin-top: 8px;">Orders of the Court — Certiorari Granted in Three Matters</h3>
+          <p style="margin-top: 6px; color: var(--text-secondary); font-size: 0.9rem;">The Court granted certiorari in administrative law and constitutional property rights disputes slated for oral argument.</p>
+        </div>
+
+        <div class="counter-stat-card" style="border-left: 4px solid var(--status-teal);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="badge tone-teal">U.S. Court of Appeals for the D.C. Circuit</span>
+            <span style="font-size: 0.8rem; color: var(--text-tertiary);">Today · 9:30 AM EST</span>
+          </div>
+          <h3 style="font-family: var(--font-serif); font-size: 1.2rem; margin-top: 8px;">United States v. Alphabet Inc. — Mandate Clarification Issued</h3>
+          <p style="margin-top: 6px; color: var(--text-secondary); font-size: 0.9rem;">Appellate panel clarifies scope of discovery in remanded remedial framework proceedings.</p>
+        </div>
+
+        <div class="counter-stat-card" style="border-left: 4px solid var(--status-warning);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="badge tone-warning">U.S. District Court, Southern District of New York</span>
+            <span style="font-size: 0.8rem; color: var(--text-tertiary);">Yesterday · 4:15 PM EST</span>
+          </div>
+          <h3 style="font-family: var(--font-serif); font-size: 1.2rem; margin-top: 8px;">SEC v. Digital Assets Consortium — Motion for Summary Judgment Denied</h3>
+          <p style="margin-top: 6px; color: var(--text-secondary); font-size: 0.9rem;">Holding disputed material issues of fact exist regarding institutional token sales under the Howey test.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 5: RESEARCH DOSSIER & SAVED BOOKMARKS
+         ==================================================================== -->
+    <section id="view-bookmarks" class="view-panel" aria-label="Research Dossier">
+      <div class="search-view-header">
+        <div class="section-eyebrow">Personal Legal Archive</div>
+        <h2 class="section-title">Saved Research Dossier</h2>
+        <p style="color: var(--text-secondary); margin-top: 6px;">Your saved judicial profiles and bookmarked cases are stored securely in your browser session.</p>
+      </div>
+
+      <div id="bookmarks-list-container" style="margin-top: 24px;"></div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================
+       DETAIL MODAL / DOSSIER DIALOG OVERLAY
+       ==================================================================== -->
+  <div id="detail-modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Details Dialog">
+    <div class="modal-content-card">
+      <button id="modal-close-button" class="modal-close-btn" aria-label="Close Dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+      </button>
+      <div id="modal-dynamic-content"></div>
+    </div>
+  </div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="brand-lockup">
+          <div class="brand-tile">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <line x1="2" x2="22" y1="22" y2="22"/><line x1="12" x2="12" y1="6" y2="18"/><line x1="6" x2="6" y1="10" y2="18"/><line x1="18" x2="18" y1="10" y2="18"/><path d="m3 6 9-4 9 4"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">BENCHMARK</span>
+            <span class="brand-subtitle">JUSTICE</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+          <span class="badge tone-gold">Public records only</span>
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">CourtListener REST API v4 Active</span>
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Congress.gov v3 Connected</span>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>Benchmark Justice™ · Public Records & Judicial Intelligence · 2026</div>
+        <div>Real data · Real outcomes · Real justice</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Script (Modern ES Module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
+

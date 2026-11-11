@@ -1,0 +1,20 @@
+{
+  "name": "benchmark-justice-web",
+  "version": "1.0.0",
+  "description": "Benchmark Justice™ — Web Edition",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -l 3000 .",
+    "dev": "npx serve -l 3000 .",
+    "preview": "npx serve -l 3000 ."
+  },
+  "keywords": [
+    "benchmark-justice",
+    "judicial-research",
+    "courtlistener",
+    "legal-tech"
+  ],
+  "author": "Benchmark Justice",
+  "license": "UNLICENSED"
+}
+
