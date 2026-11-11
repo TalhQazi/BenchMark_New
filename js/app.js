@@ -93,6 +93,36 @@ const LIVE_FEED_ITEMS = [
   },
 ];
 
+/* --------------------------------------------------------------------------
+   Search & Matching Engine
+   -------------------------------------------------------------------------- */
+function cleanSearchToken(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function matchesQuery(query, fields) {
+  if (!query || !query.trim()) return true;
+  const normQuery = cleanSearchToken(query);
+  if (!normQuery) return true;
+
+  const combined = cleanSearchToken(fields.filter(Boolean).join(' '));
+  // 1. Direct substring match
+  if (combined.includes(normQuery)) return true;
+
+  // 2. Multi-word token match: every token in the query must match a token in the combined text
+  const queryTokens = normQuery.split(' ').filter(Boolean);
+  const targetTokens = combined.split(' ').filter(Boolean);
+
+  return queryTokens.every((q) =>
+    targetTokens.some((t) => t === q || t.startsWith(q) || (q.length >= 3 && t.includes(q)))
+  );
+}
+
 const JUDGES_DATA = [
   {
     id: 'judge-1',
@@ -108,6 +138,7 @@ const JUDGES_DATA = [
     authoredOpinions: 342,
     education: 'Harvard Law School (J.D., 1979); Harvard College (A.B., 1976)',
     biography: 'John Glover Roberts Jr. is the 17th Chief Justice of the United States. Appointed in 2005, he previously served on the U.S. Court of Appeals for the District of Columbia Circuit and as Principal Deputy Solicitor General.',
+    aliases: ['John Roberts', 'Chief Justice Roberts', 'Roberts', 'SCOTUS', 'John Glover Roberts'],
     notableCases: [
       { name: 'Loper Bright Enterprises v. Raimondo', year: 2024, cites: 840 },
       { name: 'West Virginia v. EPA', year: 2022, cites: 1420 },
@@ -129,6 +160,7 @@ const JUDGES_DATA = [
     authoredOpinions: 318,
     education: 'Yale Law School (J.D., 1979); Princeton University (B.A., 1976)',
     biography: 'Sonia Sotomayor is an Associate Justice of the Supreme Court of the United States. She is the first Hispanic and Latina member of the Court, formerly serving on the U.S. Court of Appeals for the Second Circuit.',
+    aliases: ['Sonia Sotomayor', 'Justice Sotomayor', 'Sotomayor'],
     notableCases: [
       { name: 'Schuette v. BAMN (Dissent)', year: 2014, cites: 1250 },
       { name: 'Utah v. Strieff (Dissent)', year: 2016, cites: 1980 },
@@ -149,6 +181,7 @@ const JUDGES_DATA = [
     authoredOpinions: 265,
     education: 'Stanford Law School (J.D., 1995); Stanford University (B.A., 1989)',
     biography: 'Sri Srinivasan serves as Chief Judge of the United States Court of Appeals for the District of Columbia Circuit. Before judicial appointment, he served as Principal Deputy Solicitor General of the United States.',
+    aliases: ['Sri Srinivasan', 'Judge Srinivasan', 'Srinivasan'],
     notableCases: [
       { name: 'United States v. Alphabet Inc.', year: 2026, cites: 110 },
       { name: 'Mozilla Corp. v. FCC', year: 2019, cites: 890 },
@@ -169,6 +202,7 @@ const JUDGES_DATA = [
     authoredOpinions: 210,
     education: 'UC Berkeley School of Law (J.D., 1994); Boston College (B.S., 1991)',
     biography: 'Amul Thapar serves on the U.S. Court of Appeals for the Sixth Circuit. He was previously a U.S. District Judge for the Eastern District of Kentucky and U.S. Attorney.',
+    aliases: ['Amul Thapar', 'Amul R Thapar', 'Judge Thapar', 'Thapar'],
     notableCases: [
       { name: 'Meriwether v. Hartop', year: 2021, cites: 620 },
       { name: 'United States v. Nichols', year: 2018, cites: 340 },
@@ -188,6 +222,7 @@ const JUDGES_DATA = [
     authoredOpinions: 98,
     education: 'Harvard Law School (J.D., 1996); Harvard University (A.B., 1992)',
     biography: 'Ketanji Brown Jackson is an Associate Justice of the Supreme Court of the United States. She previously served on the D.C. Circuit and U.S. District Court for D.C., as well as Vice Chair of the U.S. Sentencing Commission.',
+    aliases: ['Ketanji Jackson', 'Ketanji Brown Jackson', 'Justice Jackson', 'Jackson'],
     notableCases: [
       { name: 'Corner Post, Inc. v. Board of Governors (Dissent)', year: 2024, cites: 310 },
       { name: 'Allen v. Milligan (Concurrence)', year: 2023, cites: 540 },
@@ -207,9 +242,130 @@ const JUDGES_DATA = [
     authoredOpinions: 390,
     education: 'Marquette University Law School (J.D., 1989); Northwestern University (B.S., 1980)',
     biography: 'Diane S. Sykes is the Chief United States Circuit Judge of the U.S. Court of Appeals for the Seventh Circuit, formerly a Justice of the Wisconsin Supreme Court.',
+    aliases: ['Diane Sykes', 'Diane S Sykes', 'Judge Sykes', 'Sykes'],
     notableCases: [
       { name: 'Ezell v. City of Chicago', year: 2011, cites: 1890 },
       { name: 'Christian Legal Society v. Walker', year: 2006, cites: 980 },
+    ],
+  },
+  {
+    id: 'judge-7',
+    name: 'Clarence Thomas',
+    title: 'Associate Justice',
+    court: 'Supreme Court of the United States',
+    courtId: 'scotus',
+    jurisdiction: 'Federal Supreme',
+    nominatedBy: 'George H.W. Bush',
+    confirmationDate: 'October 15, 1991',
+    status: 'Active',
+    yearsOfService: '35 years',
+    authoredOpinions: 480,
+    education: 'Yale Law School (J.D., 1974); College of the Holy Cross (A.B., 1971)',
+    biography: 'Clarence Thomas is the senior Associate Justice of the Supreme Court of the United States, nominated by President George H.W. Bush in 1991.',
+    aliases: ['Clarence Thomas', 'Justice Thomas', 'Thomas'],
+    notableCases: [
+      { name: 'New York State Rifle & Pistol Ass\'n v. Bruen', year: 2022, cites: 2850 },
+      { name: 'CFPB v. Community Financial Services Ass\'n', year: 2024, cites: 420 },
+    ],
+  },
+  {
+    id: 'judge-8',
+    name: 'Samuel A. Alito, Jr.',
+    title: 'Associate Justice',
+    court: 'Supreme Court of the United States',
+    courtId: 'scotus',
+    jurisdiction: 'Federal Supreme',
+    nominatedBy: 'George W. Bush',
+    confirmationDate: 'January 31, 2006',
+    status: 'Active',
+    yearsOfService: '21 years',
+    authoredOpinions: 350,
+    education: 'Yale Law School (J.D., 1975); Princeton University (A.B., 1972)',
+    biography: 'Samuel Anthony Alito Jr. is an Associate Justice of the Supreme Court of the United States. He previously served on the U.S. Court of Appeals for the Third Circuit and as U.S. Attorney for the District of New Jersey.',
+    aliases: ['Samuel Alito', 'Sam Alito', 'Justice Alito', 'Alito'],
+    notableCases: [
+      { name: 'Dobbs v. Jackson Women\'s Health Organization', year: 2022, cites: 4900 },
+      { name: 'Janus v. AFSCME', year: 2018, cites: 2150 },
+    ],
+  },
+  {
+    id: 'judge-9',
+    name: 'Elena Kagan',
+    title: 'Associate Justice',
+    court: 'Supreme Court of the United States',
+    courtId: 'scotus',
+    jurisdiction: 'Federal Supreme',
+    nominatedBy: 'Barack Obama',
+    confirmationDate: 'August 7, 2010',
+    status: 'Active',
+    yearsOfService: '16 years',
+    authoredOpinions: 290,
+    education: 'Harvard Law School (J.D., 1986); Princeton University (A.B., 1981)',
+    biography: 'Elena Kagan is an Associate Justice of the Supreme Court of the United States. She was previously Solicitor General of the United States and Dean of Harvard Law School.',
+    aliases: ['Elena Kagan', 'Justice Kagan', 'Kagan'],
+    notableCases: [
+      { name: 'West Virginia v. EPA (Dissent)', year: 2022, cites: 1420 },
+      { name: 'Kisor v. Wilkie', year: 2019, cites: 1350 },
+    ],
+  },
+  {
+    id: 'judge-10',
+    name: 'Neil M. Gorsuch',
+    title: 'Associate Justice',
+    court: 'Supreme Court of the United States',
+    courtId: 'scotus',
+    jurisdiction: 'Federal Supreme',
+    nominatedBy: 'Donald J. Trump',
+    confirmationDate: 'April 7, 2017',
+    status: 'Active',
+    yearsOfService: '9 years',
+    authoredOpinions: 195,
+    education: 'Harvard Law School (J.D., 1991); Columbia University (B.A., 1988); Oxford University (D.Phil., 2004)',
+    biography: 'Neil McGill Gorsuch is an Associate Justice of the Supreme Court of the United States. He previously served on the U.S. Court of Appeals for the Tenth Circuit.',
+    aliases: ['Neil Gorsuch', 'Justice Gorsuch', 'Gorsuch'],
+    notableCases: [
+      { name: 'Bostock v. Clayton County', year: 2020, cites: 3100 },
+      { name: 'McGirt v. Oklahoma', year: 2020, cites: 1450 },
+    ],
+  },
+  {
+    id: 'judge-11',
+    name: 'Brett M. Kavanaugh',
+    title: 'Associate Justice',
+    court: 'Supreme Court of the United States',
+    courtId: 'scotus',
+    jurisdiction: 'Federal Supreme',
+    nominatedBy: 'Donald J. Trump',
+    confirmationDate: 'October 6, 2018',
+    status: 'Active',
+    yearsOfService: '8 years',
+    authoredOpinions: 175,
+    education: 'Yale Law School (J.D., 1990); Yale College (B.A., 1987)',
+    biography: 'Brett Michael Kavanaugh is an Associate Justice of the Supreme Court of the United States, having previously served on the U.S. Court of Appeals for the D.C. Circuit.',
+    aliases: ['Brett Kavanaugh', 'Justice Kavanaugh', 'Kavanaugh'],
+    notableCases: [
+      { name: 'Allen v. Milligan', year: 2023, cites: 540 },
+      { name: 'NCAA v. Alston (Concurrence)', year: 2021, cites: 1200 },
+    ],
+  },
+  {
+    id: 'judge-12',
+    name: 'Amy Coney Barrett',
+    title: 'Associate Justice',
+    court: 'Supreme Court of the United States',
+    courtId: 'scotus',
+    jurisdiction: 'Federal Supreme',
+    nominatedBy: 'Donald J. Trump',
+    confirmationDate: 'October 26, 2020',
+    status: 'Active',
+    yearsOfService: '6 years',
+    authoredOpinions: 130,
+    education: 'Notre Dame Law School (J.D., 1997); Rhodes College (B.A., 1994)',
+    biography: 'Amy Coney Barrett is an Associate Justice of the Supreme Court of the United States. She previously served on the U.S. Court of Appeals for the Seventh Circuit.',
+    aliases: ['Amy Coney Barrett', 'Amy Barrett', 'Justice Barrett', 'Barrett'],
+    notableCases: [
+      { name: 'Murthy v. Missouri', year: 2024, cites: 390 },
+      { name: 'Fulton v. City of Philadelphia', year: 2021, cites: 980 },
     ],
   },
 ];
@@ -802,7 +958,13 @@ class BenchmarkApp {
         clearTimeout(timeout);
         timeout = setTimeout(() => {
           this.performSearch(this.mainSearchInput.value.trim());
-        }, 220);
+        }, 180);
+      });
+      this.mainSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          clearTimeout(timeout);
+          this.performSearch(this.mainSearchInput.value.trim());
+        }
       });
     }
 
@@ -829,12 +991,22 @@ class BenchmarkApp {
   }
 
   performSearch(query) {
-    this.searchQuery = (query || '').toLowerCase();
+    this.searchQuery = (query || '').trim();
     const results = [];
 
     if (this.searchFilter === 'all' || this.searchFilter === 'judges') {
       JUDGES_DATA.forEach((j) => {
-        if (!this.searchQuery || j.name.toLowerCase().includes(this.searchQuery) || j.court.toLowerCase().includes(this.searchQuery)) {
+        const fields = [
+          j.name,
+          j.title,
+          j.court,
+          j.nominatedBy,
+          j.education,
+          j.biography,
+          ...(j.aliases || []),
+          ...(j.notableCases ? j.notableCases.map((c) => c.name) : []),
+        ];
+        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
           results.push({
             type: 'judge',
             id: j.id,
@@ -850,7 +1022,17 @@ class BenchmarkApp {
 
     if (this.searchFilter === 'all' || this.searchFilter === 'cases') {
       CASES_DATA.forEach((c) => {
-        if (!this.searchQuery || c.title.toLowerCase().includes(this.searchQuery) || c.court.toLowerCase().includes(this.searchQuery) || c.docketNumber.toLowerCase().includes(this.searchQuery)) {
+        const fields = [
+          c.title,
+          c.court,
+          c.docketNumber,
+          c.judge,
+          c.summary,
+          ...(c.keywords || []),
+          ...(c.counsel ? c.counsel.map((cn) => cn.name) : []),
+          ...(c.citations || []),
+        ];
+        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
           results.push({
             type: 'case',
             id: c.id,
@@ -866,7 +1048,15 @@ class BenchmarkApp {
 
     if (this.searchFilter === 'all' || this.searchFilter === 'attorneys') {
       ATTORNEYS_DATA.forEach((a) => {
-        if (!this.searchQuery || a.name.toLowerCase().includes(this.searchQuery) || a.firm.toLowerCase().includes(this.searchQuery)) {
+        const fields = [
+          a.name,
+          a.firm,
+          a.role,
+          a.notableMatters,
+          ...(a.jurisdictions || []),
+          ...(a.aliases || []),
+        ];
+        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
           results.push({
             type: 'attorney',
             id: a.id,
@@ -882,7 +1072,15 @@ class BenchmarkApp {
 
     if (this.searchFilter === 'all' || this.searchFilter === 'legislators') {
       LEGISLATORS_DATA.forEach((l) => {
-        if (!this.searchQuery || l.name.toLowerCase().includes(this.searchQuery) || l.state.toLowerCase().includes(this.searchQuery)) {
+        const fields = [
+          l.name,
+          l.role,
+          l.state,
+          l.party,
+          l.committee,
+          ...(l.aliases || []),
+        ];
+        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
           results.push({
             type: 'legislator',
             id: l.id,
@@ -982,14 +1180,14 @@ class BenchmarkApp {
     if (this.modalContent && this.modalOverlay) {
       this.modalContent.innerHTML = html;
       this.modalOverlay.classList.add('open');
-      document.body.style.overflow = 'hidden';
+      if (document.body) document.body.style.overflow = 'hidden';
     }
   }
 
   closeModal() {
     if (this.modalOverlay) {
       this.modalOverlay.classList.remove('open');
-      document.body.style.overflow = '';
+      if (document.body) document.body.style.overflow = '';
     }
   }
 
