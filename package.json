@@ -1,19 +1,12 @@
 {
   "name": "benchmark-justice-web",
   "version": "1.0.0",
-  "description": "Benchmark Justice™ — Web Edition",
-  "main": "index.html",
+  "private": true,
+  "description": "Benchmark Justice™ — Web Edition (the mobile app built for the browser, live data only)",
   "scripts": {
-    "start": "npx serve -l 3000 .",
-    "dev": "npx serve -l 3000 .",
-    "preview": "npx serve -l 3000 ."
+    "build": "cd .. && npx expo export --platform web --output-dir Website/dist",
+    "start": "npx serve -s dist -l 3000",
+    "preview": "npm run build && npm run start"
   },
-  "keywords": [
-    "benchmark-justice",
-    "judicial-research",
-    "legal-tech"
-  ],
-  "author": "Benchmark Justice",
   "license": "UNLICENSED"
 }
-

@@ -811,8 +811,8 @@ class BenchmarkApp {
 
   async fetchLiveCoverageStats() {
     try {
-      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
-      const congressKey = 'F8cM6hGQkG9HBm77FKJjzjCb9mhzhqppP9JfzB7P';
+      const headers = { Authorization: 'Token REMOVED_USE_ENV' };
+      const congressKey = 'REMOVED_USE_ENV';
 
       const [opsRes, dksRes, judgesRes, courtsRes, congressRes] = await Promise.allSettled([
         fetch('https://www.courtlistener.com/api/rest/v4/search/?type=o', { headers }).then((r) => r.json()),
@@ -1185,7 +1185,7 @@ class BenchmarkApp {
 
   async fetchLiveSearchResults(query) {
     try {
-      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
+      const headers = { Authorization: 'Token REMOVED_USE_ENV' };
       const res = await fetch(`https://www.courtlistener.com/api/rest/v4/search/?q=${encodeURIComponent(query)}&type=p`, { headers });
       if (!res.ok) return;
       const data = await res.json();
@@ -1515,7 +1515,7 @@ class BenchmarkApp {
 
   async fetchDynamicJudgeDetails(judge, clId) {
     try {
-      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
+      const headers = { Authorization: 'Token REMOVED_USE_ENV' };
       const personUrl = clId
         ? `https://www.courtlistener.com/api/rest/v4/search/?type=p&q=id:${clId}`
         : `https://www.courtlistener.com/api/rest/v4/search/?type=p&q=${encodeURIComponent(judge.name)}`;
@@ -1771,7 +1771,7 @@ ${caseItem.fullText || 'Opinion text indexed in the federal database.'}
 
   async fetchDynamicCaseDetails(rawCaseId, caseType) {
     try {
-      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
+      const headers = { Authorization: 'Token REMOVED_USE_ENV' };
       const q = caseType === 'o' ? `cluster_id:${rawCaseId}` : `id:${rawCaseId}`;
       const res = await fetch(`https://www.courtlistener.com/api/rest/v4/search/?type=${caseType}&q=${encodeURIComponent(q)}`, { headers });
       if (!res.ok) return;
