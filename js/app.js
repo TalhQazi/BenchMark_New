@@ -1048,112 +1048,211 @@ class BenchmarkApp {
 
   performSearch(query) {
     this.searchQuery = (query || '').trim();
-    const results = [];
 
-    if (this.searchFilter === 'all' || this.searchFilter === 'judges') {
-      JUDGES_DATA.forEach((j) => {
-        const fields = [
-          j.name,
-          j.title,
-          j.court,
-          j.nominatedBy,
-          j.education,
-          j.biography,
-          ...(j.aliases || []),
-          ...(j.notableCases ? j.notableCases.map((c) => c.name) : []),
-        ];
-        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
-          results.push({
-            type: 'judge',
-            id: j.id,
-            title: j.name,
-            subtitle: `${j.title} · ${j.court}`,
-            tag: j.nominatedBy ? `Nominated by ${j.nominatedBy}` : 'Judge',
-            tone: 'tone-gold',
-            item: j,
-          });
-        }
-      });
+    const getMatches = (filter) => {
+      const list = [];
+      if (filter === 'all' || filter === 'judges') {
+        JUDGES_DATA.forEach((j) => {
+          const fields = [
+            j.name,
+            j.title,
+            j.court,
+            j.nominatedBy,
+            j.education,
+            j.biography,
+            ...(j.aliases || []),
+            ...(j.notableCases ? j.notableCases.map((c) => c.name) : []),
+          ];
+          if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
+            list.push({
+              type: 'judge',
+              id: j.id,
+              title: j.name,
+              subtitle: `${j.title} · ${j.court}`,
+              tag: j.nominatedBy ? `Nominated by ${j.nominatedBy}` : 'Judge',
+              tone: 'tone-gold',
+              item: j,
+            });
+          }
+        });
+      }
+
+      if (filter === 'all' || filter === 'cases') {
+        CASES_DATA.forEach((c) => {
+          const fields = [
+            c.title,
+            c.court,
+            c.docketNumber,
+            c.judge,
+            c.summary,
+            ...(c.keywords || []),
+            ...(c.counsel ? c.counsel.map((cn) => cn.name) : []),
+            ...(c.citations || []),
+          ];
+          if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
+            list.push({
+              type: 'case',
+              id: c.id,
+              title: c.title,
+              subtitle: `${c.docketNumber} · ${c.court} (${c.date})`,
+              tag: `${c.citeCount} citations · ${c.status.split('·')[0].trim()}`,
+              tone: 'tone-teal',
+              item: c,
+            });
+          }
+        });
+      }
+
+      if (filter === 'all' || filter === 'attorneys') {
+        ATTORNEYS_DATA.forEach((a) => {
+          const fields = [
+            a.name,
+            a.firm,
+            a.role,
+            a.notableMatters,
+            ...(a.jurisdictions || []),
+            ...(a.aliases || []),
+          ];
+          if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
+            list.push({
+              type: 'attorney',
+              id: a.id,
+              title: a.name,
+              subtitle: `${a.role} · ${a.firm}`,
+              tag: `${a.appearances} appearances`,
+              tone: 'tone-info',
+              item: a,
+            });
+          }
+        });
+      }
+
+      if (filter === 'all' || filter === 'legislators') {
+        LEGISLATORS_DATA.forEach((l) => {
+          const fields = [
+            l.name,
+            l.role,
+            l.state,
+            l.party,
+            l.committee,
+            ...(l.aliases || []),
+          ];
+          if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
+            list.push({
+              type: 'legislator',
+              id: l.id,
+              title: l.name,
+              subtitle: `${l.role} (${l.party}-${l.state}) · ${l.committee}`,
+              tag: `${l.sponsoredBills} sponsored bills`,
+              tone: 'tone-plum',
+              item: l,
+            });
+          }
+        });
+      }
+      return list;
+    };
+
+    let results = getMatches(this.searchFilter);
+    let crossNotice = null;
+
+    if (results.length === 0 && this.searchFilter !== 'all' && this.searchQuery) {
+      const allResults = getMatches('all');
+      if (allResults.length > 0) {
+        results = allResults;
+        crossNotice = `No matches in "${this.searchFilter.toUpperCase()}", but found ${allResults.length} record${allResults.length === 1 ? '' : 's'} across other categories:`;
+      }
     }
 
-    if (this.searchFilter === 'all' || this.searchFilter === 'cases') {
-      CASES_DATA.forEach((c) => {
-        const fields = [
-          c.title,
-          c.court,
-          c.docketNumber,
-          c.judge,
-          c.summary,
-          ...(c.keywords || []),
-          ...(c.counsel ? c.counsel.map((cn) => cn.name) : []),
-          ...(c.citations || []),
-        ];
-        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
-          results.push({
-            type: 'case',
-            id: c.id,
-            title: c.title,
-            subtitle: `${c.docketNumber} · ${c.court} (${c.date})`,
-            tag: `${c.citeCount} citations · ${c.status.split('·')[0].trim()}`,
-            tone: 'tone-teal',
-            item: c,
-          });
-        }
-      });
-    }
+    this.renderSearchResults(results, crossNotice);
 
-    if (this.searchFilter === 'all' || this.searchFilter === 'attorneys') {
-      ATTORNEYS_DATA.forEach((a) => {
-        const fields = [
-          a.name,
-          a.firm,
-          a.role,
-          a.notableMatters,
-          ...(a.jurisdictions || []),
-          ...(a.aliases || []),
-        ];
-        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
-          results.push({
-            type: 'attorney',
-            id: a.id,
-            title: a.name,
-            subtitle: `${a.role} · ${a.firm}`,
-            tag: `${a.appearances} appearances`,
-            tone: 'tone-info',
-            item: a,
-          });
-        }
-      });
+    if (this.searchQuery && this.searchQuery.length >= 2) {
+      this.fetchLiveSearchResults(this.searchQuery);
     }
-
-    if (this.searchFilter === 'all' || this.searchFilter === 'legislators') {
-      LEGISLATORS_DATA.forEach((l) => {
-        const fields = [
-          l.name,
-          l.role,
-          l.state,
-          l.party,
-          l.committee,
-          ...(l.aliases || []),
-        ];
-        if (!this.searchQuery || matchesQuery(this.searchQuery, fields)) {
-          results.push({
-            type: 'legislator',
-            id: l.id,
-            title: l.name,
-            subtitle: `${l.role} (${l.party}-${l.state}) · ${l.committee}`,
-            tag: `${l.sponsoredBills} sponsored bills`,
-            tone: 'tone-plum',
-            item: l,
-          });
-        }
-      });
-    }
-
-    this.renderSearchResults(results);
   }
 
-  renderSearchResults(results) {
+  async fetchLiveSearchResults(query) {
+    try {
+      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
+      const res = await fetch(`https://www.courtlistener.com/api/rest/v4/search/?q=${encodeURIComponent(query)}&type=p`, { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !Array.isArray(data.results) || data.results.length === 0) return;
+
+      const existingNames = new Set(
+        Array.from(document.querySelectorAll('.result-title')).map((el) => cleanSearchToken(el.textContent))
+      );
+
+      const liveItems = [];
+      data.results.slice(0, 8).forEach((hit) => {
+        const name = hit.name || `${hit.name_first || ''} ${hit.name_last || ''}`.trim();
+        if (!name || existingNames.has(cleanSearchToken(name))) return;
+        existingNames.add(cleanSearchToken(name));
+
+        const pos = hit.positions?.[0];
+        const court = pos?.court_full_name || pos?.court || 'Federal Court';
+        const title = pos?.job_title || pos?.position_type || 'Judge';
+
+        liveItems.push({
+          type: 'judge',
+          id: `live:${hit.id}`,
+          title: name,
+          subtitle: `${title} · ${court}`,
+          tag: 'Live Record',
+          tone: 'tone-gold',
+          item: {
+            id: `live:${hit.id}`,
+            name,
+            title,
+            court,
+            jurisdiction: 'Federal',
+            nominatedBy: hit.positions?.[0]?.appointer || 'Appointed',
+            biography: `Public judicial record from CourtListener archive. ${hit.aba_rating ? `ABA Rating: ${hit.aba_rating.join(', ')}.` : ''}`,
+            notableCases: [],
+          },
+        });
+      });
+
+      if (liveItems.length > 0 && this.searchResultsContainer) {
+        const liveSection = document.createElement('div');
+        liveSection.style.marginTop = '20px';
+        liveSection.innerHTML = `
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Live Public Records from Archive (${liveItems.length})
+          </div>
+          ${liveItems
+            .map(
+              (r) => `
+            <div class="result-card-row" data-type="${r.type}" data-id="${r.id}">
+              <div class="result-info-group">
+                <div>
+                  <h4 class="result-title">${r.title}</h4>
+                  <div class="result-subtitle">${r.subtitle}</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+                <span class="badge ${r.tone}">${r.tag}</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+            </div>
+          `
+            )
+            .join('')}
+        `;
+        this.searchResultsContainer.appendChild(liveSection);
+        liveSection.querySelectorAll('.result-card-row').forEach((row) => {
+          row.addEventListener('click', () => {
+            const id = row.getAttribute('data-id');
+            const found = liveItems.find((x) => x.id === id);
+            if (found && found.item) this.openJudgeModal(found.item);
+          });
+        });
+      }
+    } catch {}
+  }
+
+  renderSearchResults(results, crossNotice = null) {
     if (!this.searchResultsContainer) return;
 
     if (this.resultsCountLabel) {
@@ -1165,14 +1264,26 @@ class BenchmarkApp {
         <div style="padding: 64px 20px; text-align: center; color: var(--text-tertiary);">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 16px;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text);">No records found</h3>
-          <p style="margin-top: 6px; font-size: 0.9rem;">Try adjusting your query or selecting "All" categories.</p>
+          <p style="margin-top: 6px; font-size: 0.9rem;">Try adjusting your query or selecting "All Records".</p>
+          <div style="margin-top: 16px;">
+            <button class="filter-pill active" onclick="benchmarkApp.setSearchFilter('all')" style="margin: 0 auto;">Search All Records</button>
+          </div>
         </div>
       `;
       return;
     }
 
-    this.searchResultsContainer.innerHTML = results
-      .map(
+    const noticeHtml = crossNotice
+      ? `<div style="padding: 12px 16px; margin-bottom: 16px; background: rgba(194,161,90,0.12); border: 1px solid rgba(194,161,90,0.3); border-radius: var(--radius-sm); font-size: 0.9rem; color: var(--text); display: flex; align-items: center; justify-content: space-between;">
+           <span>${crossNotice}</span>
+           <button class="filter-pill active" onclick="benchmarkApp.setSearchFilter('all')" style="margin: 0; padding: 4px 10px; font-size: 0.8rem;">Switch to All</button>
+         </div>`
+      : '';
+
+    this.searchResultsContainer.innerHTML =
+      noticeHtml +
+      results
+        .map(
         (r) => `
       <div class="result-card-row" data-type="${r.type}" data-id="${r.id}">
         <div class="result-info-group">
