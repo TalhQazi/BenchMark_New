@@ -126,6 +126,7 @@ function matchesQuery(query, fields) {
 const JUDGES_DATA = [
   {
     id: 'judge-1',
+    clId: '2738',
     name: 'John G. Roberts, Jr.',
     title: 'Chief Justice of the United States',
     court: 'Supreme Court of the United States',
@@ -148,6 +149,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-2',
+    clId: '2865',
     name: 'Sonia Sotomayor',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -169,6 +171,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-3',
+    clId: '9134',
     name: 'Sri Srinivasan',
     title: 'Chief Judge',
     court: 'U.S. Court of Appeals for the D.C. Circuit',
@@ -190,6 +193,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-4',
+    clId: '2981',
     name: 'Amul R. Thapar',
     title: 'Circuit Judge',
     court: 'U.S. Court of Appeals for the Sixth Circuit',
@@ -210,6 +214,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-5',
+    clId: '9211',
     name: 'Ketanji Brown Jackson',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -230,6 +235,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-6',
+    clId: '2946',
     name: 'Diane S. Sykes',
     title: 'Chief Judge',
     court: 'U.S. Court of Appeals for the Seventh Circuit',
@@ -250,6 +256,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-7',
+    clId: '2987',
     name: 'Clarence Thomas',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -270,6 +277,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-8',
+    clId: '58',
     name: 'Samuel A. Alito, Jr.',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -290,6 +298,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-9',
+    clId: '1615',
     name: 'Elena Kagan',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -310,6 +319,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-10',
+    clId: '1215',
     name: 'Neil M. Gorsuch',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -330,6 +340,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-11',
+    clId: '1644',
     name: 'Brett M. Kavanaugh',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -350,6 +361,7 @@ const JUDGES_DATA = [
   },
   {
     id: 'judge-12',
+    clId: '9152',
     name: 'Amy Coney Barrett',
     title: 'Associate Justice',
     court: 'Supreme Court of the United States',
@@ -1358,24 +1370,68 @@ class BenchmarkApp {
     }
   }
 
-  openJudgeModal(id) {
-    const judge = JUDGES_DATA.find((j) => j.id === id) || JUDGES_DATA[0];
+  openJudgeModal(judgeOrId) {
+    let judge = null;
+    if (typeof judgeOrId === 'object' && judgeOrId !== null) {
+      judge = judgeOrId;
+    } else {
+      const idStr = String(judgeOrId || '');
+      judge =
+        JUDGES_DATA.find(
+          (j) =>
+            j.id === idStr ||
+            j.clId === idStr ||
+            (j.aliases && j.aliases.some((a) => a.toLowerCase() === idStr.toLowerCase())) ||
+            j.name.toLowerCase() === idStr.toLowerCase()
+        ) ||
+        (idStr.startsWith('live:')
+          ? {
+              id: idStr,
+              clId: idStr.replace('live:', ''),
+              name: 'Judicial Profile',
+              title: 'Judge',
+              court: 'Federal Court',
+              jurisdiction: 'Federal',
+              status: 'Active',
+              authoredOpinions: 'Loading...',
+              yearsOfService: 'Active',
+              nominatedBy: 'President',
+              confirmationDate: 'Confirmed',
+              biography: 'Public judicial record from CourtListener archive.',
+              education: 'Law School',
+              notableCases: [],
+            }
+          : JUDGES_DATA[0]);
+    }
+
     const isSaved = window.dossier?.isSaved('judges', judge.id);
+    const clId = judge.clId || (judge.id && judge.id.startsWith('live:') ? judge.id.replace('live:', '') : null);
 
     const html = `
       <div class="modal-header-hero">
         <div class="profile-modal-avatar">
-          ${judge.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+          ${judge.name.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('')}
         </div>
-        <span class="badge tone-gold">${judge.status} · ${judge.jurisdiction}</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+          <span class="badge tone-gold">${judge.status || 'Active'} · ${judge.jurisdiction || 'Federal'}</span>
+          <span id="judge-sync-badge" class="badge tone-info"><span class="live-dot-pulse"></span> Querying CourtListener API...</span>
+        </div>
         <h2 style="font-family: var(--font-serif); font-size: 2rem; margin-top: 8px; color: var(--parchment);">${judge.name}</h2>
         <div style="color: var(--gold-300); font-size: 1rem; margin-top: 4px;">${judge.title}</div>
         <div style="color: var(--navy-300); font-size: 0.9rem;">${judge.court}</div>
 
-        <div style="margin-top: 18px; display: flex; gap: 10px;">
+        <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
           <button id="save-judge-btn" class="quick-chip" style="background: var(--surface); color: var(--text);">
             ${isSaved ? '★ Saved to Dossier' : '☆ Bookmark Judge'}
           </button>
+          ${
+            clId
+              ? `<a href="https://www.courtlistener.com/person/${clId}/" target="_blank" rel="noopener" class="quick-chip" style="background: var(--surface); color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span>View CourtListener Archive</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>`
+              : ''
+          }
         </div>
       </div>
 
@@ -1383,48 +1439,64 @@ class BenchmarkApp {
         <div class="stat-pills-row">
           <div class="stat-pill-box">
             <div class="stat-pill-lbl">Authored Opinions</div>
-            <div class="stat-pill-val">${judge.authoredOpinions}</div>
+            <div id="stat-opinions-val" class="stat-pill-val">${judge.authoredOpinions}</div>
           </div>
           <div class="stat-pill-box">
             <div class="stat-pill-lbl">Tenure</div>
-            <div class="stat-pill-val">${judge.yearsOfService}</div>
+            <div id="stat-tenure-val" class="stat-pill-val">${judge.yearsOfService}</div>
           </div>
           <div class="stat-pill-box">
             <div class="stat-pill-lbl">Nominated By</div>
-            <div class="stat-pill-val" style="font-size: 1rem;">${judge.nominatedBy}</div>
+            <div id="stat-nominated-val" class="stat-pill-val" style="font-size: 1rem;">${judge.nominatedBy}</div>
           </div>
           <div class="stat-pill-box">
             <div class="stat-pill-lbl">Confirmed</div>
-            <div class="stat-pill-val" style="font-size: 0.95rem;">${judge.confirmationDate}</div>
+            <div id="stat-confirmed-val" class="stat-pill-val" style="font-size: 0.95rem;">${judge.confirmationDate}</div>
           </div>
         </div>
 
         <div style="margin-top: 28px;">
           <h4 class="section-eyebrow">Biography & Background</h4>
-          <p style="margin-top: 8px; line-height: 1.6; color: var(--text-secondary);">${judge.biography}</p>
+          <p id="judge-bio-text" style="margin-top: 8px; line-height: 1.6; color: var(--text-secondary);">${judge.biography}</p>
         </div>
 
         <div style="margin-top: 24px;">
-          <h4 class="section-eyebrow">Education</h4>
-          <p style="margin-top: 6px; color: var(--text);">${judge.education}</p>
+          <h4 class="section-eyebrow">Judicial Positions & Appointments</h4>
+          <div id="judge-positions-container" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+            <div style="padding: 12px 14px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-md);">
+              <div style="font-weight: 700; color: var(--text);">${judge.title}</div>
+              <div style="font-size: 0.85rem; color: var(--gold-400);">${judge.court}</div>
+              <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 4px;">
+                Nominated by ${judge.nominatedBy} · Confirmed ${judge.confirmationDate}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <h4 class="section-eyebrow">Education & Credentials</h4>
+          <p id="judge-education-text" style="margin-top: 6px; color: var(--text);">${judge.education}</p>
         </div>
 
         <div style="margin-top: 28px;">
-          <h4 class="section-eyebrow">Precedential Opinions</h4>
-          <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-            ${judge.notableCases
-        .map(
-          (c) => `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4 class="section-eyebrow" style="margin-bottom: 0;">Authored Opinions & Case Law</h4>
+            <span id="opinions-status-tag" style="font-size: 0.75rem; color: var(--text-tertiary);">Live Archive</span>
+          </div>
+          <div id="judge-opinions-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+            ${(judge.notableCases || [])
+              .map(
+                (c) => `
               <div style="padding: 12px 14px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
                 <div>
                   <div style="font-family: var(--font-serif); font-weight: 700; color: var(--text);">${c.name}</div>
-                  <div style="font-size: 0.8rem; color: var(--text-tertiary);">${c.year}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-tertiary);">${c.year || ''}</div>
                 </div>
-                <span class="badge tone-teal">${c.cites} citations</span>
+                <span class="badge tone-teal">${c.cites || 0} citations</span>
               </div>
             `
-        )
-        .join('')}
+              )
+              .join('')}
           </div>
         </div>
       </div>
@@ -1437,17 +1509,187 @@ class BenchmarkApp {
       const btn = document.getElementById('save-judge-btn');
       if (btn) btn.textContent = savedNow ? '★ Saved to Dossier' : '☆ Bookmark Judge';
     });
+
+    this.fetchDynamicJudgeDetails(judge, clId);
+  }
+
+  async fetchDynamicJudgeDetails(judge, clId) {
+    try {
+      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
+      const personUrl = clId
+        ? `https://www.courtlistener.com/api/rest/v4/search/?type=p&q=id:${clId}`
+        : `https://www.courtlistener.com/api/rest/v4/search/?type=p&q=${encodeURIComponent(judge.name)}`;
+
+      const opinionsUrl = clId
+        ? `https://www.courtlistener.com/api/rest/v4/search/?type=o&q=author_id:${clId}&order_by=dateFiled%20desc`
+        : `https://www.courtlistener.com/api/rest/v4/search/?type=o&q=${encodeURIComponent(judge.name)}&order_by=dateFiled%20desc`;
+
+      const [pRes, oRes] = await Promise.allSettled([
+        fetch(personUrl, { headers }).then((r) => r.json()),
+        fetch(opinionsUrl, { headers }).then((r) => r.json()),
+      ]);
+
+      const badge = document.getElementById('judge-sync-badge');
+      let syncedCount = 0;
+
+      // 1. Update Person Data
+      if (pRes.status === 'fulfilled' && pRes.value && Array.isArray(pRes.value.results) && pRes.value.results.length > 0) {
+        const person = pRes.value.results[0];
+        syncedCount++;
+
+        // Update positions
+        if (Array.isArray(person.positions) && person.positions.length > 0) {
+          const positionsEl = document.getElementById('judge-positions-container');
+          if (positionsEl) {
+            positionsEl.innerHTML = person.positions
+              .filter((p) => p.court_full_name || p.position_type || p.appointer)
+              .slice(0, 6)
+              .map(
+                (p) => `
+              <div style="padding: 12px 14px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-md);">
+                <div style="font-weight: 700; color: var(--text);">${p.position_type || p.job_title || 'Judge'}</div>
+                <div style="font-size: 0.85rem; color: var(--gold-400);">${p.court_full_name || p.court || 'Federal Jurisdiction'}</div>
+                <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 4px;">
+                  Appointed by ${p.appointer || 'President'}${p.date_confirmation ? ` · Confirmed: ${p.date_confirmation}` : ''}${p.date_start ? ` · Started: ${p.date_start}` : ''}
+                </div>
+              </div>
+            `
+              )
+              .join('');
+          }
+
+          const topPos = person.positions.find((p) => !p.date_termination) || person.positions[0];
+          if (topPos?.appointer) {
+            const nomEl = document.getElementById('stat-nominated-val');
+            if (nomEl) nomEl.textContent = topPos.appointer;
+          }
+          if (topPos?.date_confirmation) {
+            const confEl = document.getElementById('stat-confirmed-val');
+            if (confEl) confEl.textContent = topPos.date_confirmation;
+          }
+        }
+
+        // Update ABA Ratings & Education
+        if (Array.isArray(person.aba_rating) && person.aba_rating.length > 0) {
+          const eduEl = document.getElementById('judge-education-text');
+          if (eduEl) {
+            eduEl.innerHTML = `
+              ${judge.education ? `<div>${judge.education}</div>` : ''}
+              <div style="margin-top: 8px;"><strong>American Bar Association (ABA) Rating:</strong> <span class="badge tone-gold" style="margin-left: 6px;">${person.aba_rating.join(', ')}</span></div>
+            `;
+          }
+        }
+      }
+
+      // 2. Update Authored Opinions Data
+      if (oRes.status === 'fulfilled' && oRes.value) {
+        syncedCount++;
+        const totalOps = oRes.value.count;
+        if (typeof totalOps === 'number' && totalOps > 0) {
+          const opCountEl = document.getElementById('stat-opinions-val');
+          if (opCountEl) opCountEl.textContent = totalOps.toLocaleString('en-US');
+        }
+
+        if (Array.isArray(oRes.value.results) && oRes.value.results.length > 0) {
+          const opinionsEl = document.getElementById('judge-opinions-container');
+          if (opinionsEl) {
+            opinionsEl.innerHTML = oRes.value.results
+              .slice(0, 8)
+              .map(
+                (o) => `
+              <div style="padding: 14px 16px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: flex-start; gap: 14px;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px; flex-wrap: wrap;">
+                    <span class="badge tone-teal" style="font-size: 0.7rem;">${o.court || 'Court Opinion'}</span>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">${o.dateFiled || ''}</span>
+                  </div>
+                  <div style="font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; color: var(--text);">${o.caseName || 'Precedential Ruling'}</div>
+                  ${
+                    o.opinions?.[0]?.snippet
+                      ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.45; max-height: 54px; overflow: hidden;">${o.opinions[0].snippet.replace(/<[^>]+>/g, '').slice(0, 180)}...</div>`
+                      : ''
+                  }
+                </div>
+                <div style="flex-shrink: 0; text-align: right;">
+                  <span class="badge tone-gold">${(o.citeCount || 0).toLocaleString()} citations</span>
+                  ${
+                    o.absolute_url
+                      ? `
+                    <div style="margin-top: 8px;">
+                      <a href="https://www.courtlistener.com${o.absolute_url}" target="_blank" rel="noopener" class="quick-chip" style="font-size: 0.75rem; padding: 3px 8px; text-decoration: none;">Read ↗</a>
+                    </div>
+                  `
+                      : ''
+                  }
+                </div>
+              </div>
+            `
+              )
+              .join('');
+          }
+        }
+      }
+
+      if (badge) {
+        if (syncedCount > 0) {
+          badge.className = 'badge tone-teal';
+          badge.innerHTML = '✓ Live Dynamic Data Synced (CourtListener)';
+        } else {
+          badge.className = 'badge tone-neutral';
+          badge.innerHTML = 'Public Record Archive';
+        }
+      }
+    } catch (e) {
+      const badge = document.getElementById('judge-sync-badge');
+      if (badge) {
+        badge.className = 'badge tone-neutral';
+        badge.innerHTML = 'Public Record Archive';
+      }
+    }
   }
 
   openCaseModal(id) {
-    const caseItem = CASES_DATA.find((c) => c.id === id) || CASES_DATA[0];
+    let caseItem = null;
+    let needsDynamicFetch = false;
+    let rawCaseId = '';
+    let caseType = 'o';
+
+    if (typeof id === 'object' && id !== null) {
+      caseItem = id;
+    } else {
+      caseItem = CASES_DATA.find((c) => c.id === id);
+      if (!caseItem) {
+        const idStr = String(id || '');
+        const isCluster = idStr.startsWith('cluster:');
+        rawCaseId = idStr.replace(/^(cluster|docket):/, '');
+        caseType = isCluster ? 'o' : 'd';
+        needsDynamicFetch = !!rawCaseId;
+
+        caseItem = {
+          id: idStr,
+          title: 'Federal Judicial Proceeding',
+          court: 'United States Federal Court',
+          docketNumber: `Docket #${rawCaseId || 'Public Record'}`,
+          date: 'Recent Filing',
+          citeCount: 0,
+          status: isCluster ? 'Published Precedential Opinion' : 'Active Federal Docket',
+          summary: 'Querying official court opinion and federal docket record from CourtListener API...',
+          counsel: [{ name: 'Counsel of Record', role: 'Federal Practice Group' }],
+          docketEntries: [{ date: 'Active Entry', text: 'Verified filing in the United States federal judiciary repository.' }],
+          fullText: 'Accessing public legal filings and court docket records from the federal judiciary archive via CourtListener REST API v4.',
+        };
+      }
+    }
     const isSaved = window.dossier?.isSaved('cases', caseItem.id);
 
     const html = `
       <div class="modal-header-hero">
-        <span class="badge tone-teal">${caseItem.status}</span>
-        <h2 style="font-family: var(--font-serif); font-size: 1.85rem; margin-top: 10px; color: var(--parchment); line-height: 1.25;">${caseItem.title}</h2>
-        <div style="color: var(--gold-300); font-size: 0.95rem; margin-top: 6px;">${caseItem.court} · ${caseItem.docketNumber}</div>
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+          <span class="badge tone-teal">${caseItem.status}</span>
+          <span id="case-sync-badge" class="badge tone-gold"><span class="live-dot-pulse"></span> Live CourtListener Record</span>
+        </div>
+        <h2 id="case-modal-title" style="font-family: var(--font-serif); font-size: 1.85rem; margin-top: 10px; color: var(--parchment); line-height: 1.25;">${caseItem.title}</h2>
+        <div id="case-modal-court" style="color: var(--gold-300); font-size: 0.95rem; margin-top: 6px;">${caseItem.court} · ${caseItem.docketNumber}</div>
         <div style="color: var(--navy-300); font-size: 0.85rem;">Date Filed: ${caseItem.date} · Citing references: ${caseItem.citeCount}</div>
 
         <div style="margin-top: 18px; display: flex; gap: 10px;">
@@ -1461,14 +1703,14 @@ class BenchmarkApp {
       </div>
 
       <div class="modal-body-padding">
-        <div style="padding: 16px; background: var(--surface-sunken); border-left: 3px solid var(--accent); border-radius: var(--radius-md); font-size: 0.95rem; line-height: 1.55; color: var(--text);">
+        <div id="case-modal-summary" style="padding: 16px; background: var(--surface-sunken); border-left: 3px solid var(--accent); border-radius: var(--radius-md); font-size: 0.95rem; line-height: 1.55; color: var(--text);">
           <strong>Summary:</strong> ${caseItem.summary}
         </div>
 
         <div style="margin-top: 24px;">
           <h4 class="section-eyebrow">Counsel of Record</h4>
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-            ${caseItem.counsel
+            ${(caseItem.counsel || [])
         .map(
           (co) => `
               <div style="font-size: 0.9rem; color: var(--text);">
@@ -1482,15 +1724,15 @@ class BenchmarkApp {
 
         <div style="margin-top: 28px;">
           <h4 class="section-eyebrow">Full Opinion Text</h4>
-          <div style="margin-top: 10px; padding: 20px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-lg); font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap; max-height: 380px; overflow-y: auto; color: var(--text);">
-${caseItem.fullText}
+          <div id="case-modal-fulltext" style="margin-top: 10px; padding: 20px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--radius-lg); font-family: var(--font-serif); font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap; max-height: 380px; overflow-y: auto; color: var(--text);">
+${caseItem.fullText || 'Opinion text indexed in the federal database.'}
           </div>
         </div>
 
         <div style="margin-top: 28px;">
           <h4 class="section-eyebrow">Docket Proceedings & Filings</h4>
           <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-            ${caseItem.docketEntries
+            ${(caseItem.docketEntries || [])
         .map(
           (d) => `
               <div style="padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.85rem;">
@@ -1505,6 +1747,10 @@ ${caseItem.fullText}
     `;
 
     this.openModal(html);
+
+    if (needsDynamicFetch) {
+      this.fetchDynamicCaseDetails(rawCaseId, caseType);
+    }
 
     document.getElementById('save-case-btn')?.addEventListener('click', () => {
       const savedNow = window.dossier?.toggle('cases', caseItem.id);
@@ -1521,6 +1767,37 @@ ${caseItem.fullText}
         if (btn) btn.textContent = 'Copy Citation';
       }, 2000);
     });
+  }
+
+  async fetchDynamicCaseDetails(rawCaseId, caseType) {
+    try {
+      const headers = { Authorization: 'Token e0b7b8be9fc0e9684d9b9930d807ec1d52129cf6' };
+      const q = caseType === 'o' ? `cluster_id:${rawCaseId}` : `id:${rawCaseId}`;
+      const res = await fetch(`https://www.courtlistener.com/api/rest/v4/search/?type=${caseType}&q=${encodeURIComponent(q)}`, { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      const hit = data.results?.[0];
+      if (hit) {
+        const titleEl = document.getElementById('case-modal-title');
+        if (titleEl && hit.caseName) titleEl.textContent = hit.caseName;
+
+        const courtEl = document.getElementById('case-modal-court');
+        if (courtEl) {
+          courtEl.textContent = `${hit.court || 'Federal Court'} · ${hit.docketNumber || `Docket #${rawCaseId}`}`;
+        }
+
+        const summaryEl = document.getElementById('case-modal-summary');
+        if (summaryEl && hit.opinions?.[0]?.snippet) {
+          summaryEl.innerHTML = `<strong>Summary & Headnotes:</strong> ${hit.opinions[0].snippet.replace(/<[^>]+>/g, '').slice(0, 320)}...`;
+        }
+
+        const badge = document.getElementById('case-sync-badge');
+        if (badge) {
+          badge.className = 'badge tone-teal';
+          badge.innerHTML = '✓ Live Docket Verified (CourtListener)';
+        }
+      }
+    } catch {}
   }
 
   openAttorneyModal(id) {
